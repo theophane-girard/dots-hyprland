@@ -79,6 +79,11 @@ Scope {
 
     function tryFingerUnlock() {
         if (!root.fingerprintsConfigured || !GlobalStates.screenLocked) return;
+        if (!fingerPam) {
+            root.recreateFingerPam();
+            fingerRetryTimer.restart();
+            return;
+        }
         if (fingerPam.active) {
             // La transaction precedente n'a pas rendu le device : fprintd repond
             // "still busy" et le driver goodixmoc repasse par un reset USB. Cas
@@ -89,12 +94,13 @@ Scope {
             fingerRetryTimer.restart();
             return;
         }
+        root.fingerPamStartedAt = Date.now();
         fingerPam.start();
     }
 
     function stopFingerPam() {
         fingerRetryTimer.stop();
-        if (fingerPam.active) {
+        if (fingerPam && fingerPam.active) {
             fingerPam.abort();
         }
     }
@@ -105,7 +111,38 @@ Scope {
     function restartFingerUnlock() {
         if (!GlobalStates.screenLocked) return;
         stopFingerPam();
+        root.recreateFingerPam();
         fingerRetryTimer.restart();
+    }
+
+    // Chien de garde. Tout le reste -- after_sleep_cmd, la valeur de PamResult au
+    // reveil, le succes de l'abort -- est un evenement qui peut ne pas arriver.
+    // Celui-ci ne depend d'aucun evenement : tant que l'ecran est verrouille il
+    // verifie qu'un verify est bien en vol, et le relance sinon. C'est ce qui
+    // rattrape a la fois la course au demarrage et la sortie de veille.
+    Timer {
+        id: fingerWatchdog
+        interval: 5000
+        repeat: true
+        running: GlobalStates.screenLocked && root.fingerprintsConfigured
+        onTriggered: {
+            if (!root.fingerPam) {
+                root.recreateFingerPam();
+                root.tryFingerUnlock();
+                return;
+            }
+            if (!root.fingerPam.active) {
+                root.tryFingerUnlock();
+                return;
+            }
+            // Actif depuis trop longtemps : pam_fprintd rend la main en ~30 s, et
+            // une veille rend l'ecart enorme. Dans les deux cas le contexte est
+            // mort, on le remplace.
+            if (root.fingerPamStartedAt > 0 && Date.now() - root.fingerPamStartedAt > 45000) {
+                root.recreateFingerPam();
+                root.tryFingerUnlock();
+            }
+        }
     }
 
     // Laisse a pam_fprintd le temps de terminer son ReleaseDevice avant de relancer
@@ -158,11 +195,27 @@ Scope {
         }
     }
 
-    PamContext {
-        id: fingerPam
+    // Le contexte PAM empreinte passe par un Loader pour pouvoir etre DETRUIT
+    // puis recree. Apres une veille, pam_fprintd reste coince : son
+    // ReleaseDevice echoue ("device is still busy", visible au journal a chaque
+    // endormissement) et le contexte ne redevient jamais inactif. Aucun abort()
+    // ne le debloque -- la seule issue est d'en fabriquer un neuf.
+    property alias fingerPam: fingerPamLoader.item
+    property double fingerPamStartedAt: 0
 
-        configDirectory: "pam"
-        config: "fprintd.conf"
+    function recreateFingerPam() {
+        console.log("[Lock] contexte PAM empreinte recree");
+        fingerPamLoader.active = false;
+        fingerPamLoader.active = true;
+        root.fingerPamStartedAt = 0;
+    }
+
+    Loader {
+        id: fingerPamLoader
+        active: true
+        sourceComponent: PamContext {
+            configDirectory: "pam"
+            config: "fprintd.conf"
 
         onCompleted: result => {
             if (result == PamResult.Success) {
@@ -177,6 +230,7 @@ Scope {
                 // parte pendant la sequence de deverrouillage.
                 fingerRetryTimer.restart();
             }
+        }
         }
     }
 }

@@ -59,6 +59,18 @@ Scope {
         passwordClearTimer.restart();
     }
 
+    // fprintd-list est asynchrone. Au demarrage l'ecran de verrouillage est leve
+    // AVANT que la reponse arrive -- au boot il faut en plus activer fprintd par
+    // D-Bus, qui enumere le capteur USB (~2 s). tryFingerUnlock() sortait donc
+    // immediatement sur fingerprintsConfigured == false, et plus rien ne le
+    // relancait ensuite : l'empreinte restait morte jusqu'au verrouillage
+    // suivant. On rearme des que la reponse arrive.
+    onFingerprintsConfiguredChanged: {
+        if (root.fingerprintsConfigured && GlobalStates.screenLocked && !fingerPam.active) {
+            fingerRetryTimer.restart();
+        }
+    }
+
     function tryUnlock(alsoInhibitIdle = false) {
         root.alsoInhibitIdle = alsoInhibitIdle;
         root.unlockInProgress = true;
@@ -66,15 +78,42 @@ Scope {
     }
 
     function tryFingerUnlock() {
-        if (root.fingerprintsConfigured) {
-            fingerPam.start();
+        if (!root.fingerprintsConfigured || !GlobalStates.screenLocked) return;
+        if (fingerPam.active) {
+            // La transaction precedente n'a pas rendu le device : fprintd repond
+            // "still busy" et le driver goodixmoc repasse par un reset USB. Cas
+            // typique, la sortie de veille -- le ReleaseDevice echoue et le
+            // contexte peut rester actif. Ne JAMAIS abandonner ici : un abandon
+            // silencieux tue l'empreinte pour tout le reste du verrouillage.
+            fingerPam.abort();
+            fingerRetryTimer.restart();
+            return;
         }
+        fingerPam.start();
     }
 
     function stopFingerPam() {
+        fingerRetryTimer.stop();
         if (fingerPam.active) {
             fingerPam.abort();
         }
+    }
+
+    // Appele au reveil de veille (after_sleep_cmd -> lockFocus). La transaction
+    // PAM d'avant la veille est morte avec le device ; on la jette et on repart
+    // proprement, sinon plus aucun verify n'est en vol.
+    function restartFingerUnlock() {
+        if (!GlobalStates.screenLocked) return;
+        stopFingerPam();
+        fingerRetryTimer.restart();
+    }
+
+    // Laisse a pam_fprintd le temps de terminer son ReleaseDevice avant de relancer
+    // un verify. Sans ce delai, les deux transactions se chevauchent.
+    Timer {
+        id: fingerRetryTimer
+        interval: 1500
+        onTriggered: root.tryFingerUnlock()
     }
 
     Process {
@@ -129,8 +168,14 @@ Scope {
             if (result == PamResult.Success) {
                 root.unlocked(root.targetAction);
                 stopFingerPam();
-            } else if (result == PamResult.Error) { // if timeout or etc..
-                tryFingerUnlock()
+            } else if (GlobalStates.screenLocked) {
+                // Relance sur TOUT resultat non-Success, pas seulement Error.
+                // Une mise en veille tue le verify en cours ("Cannot run while
+                // suspended") et PAM ne remonte pas Error : l'ancienne condition
+                // ne rearmait donc jamais, et l'empreinte restait morte jusqu'au
+                // deverrouillage suivant. Le garde screenLocked evite qu'un retry
+                // parte pendant la sequence de deverrouillage.
+                fingerRetryTimer.restart();
             }
         }
     }

@@ -108,6 +108,7 @@ Scope {
         }
         function focus(): void {
             lockContext.shouldReFocus();
+            lockContext.restartFingerUnlock();
         }
     }
 
@@ -127,6 +128,7 @@ Scope {
 
         onPressed: {
             lockContext.shouldReFocus();
+            lockContext.restartFingerUnlock();
         }
     }
 

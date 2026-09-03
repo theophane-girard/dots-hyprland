@@ -373,7 +373,11 @@ Singleton {
 
             property JsonObject lock: JsonObject {
                 property bool useHyprlock: false
-                property bool launchOnStartup: false
+                // true : QuickShell verrouille l'ecran des qu'une NOUVELLE
+                // instance Hyprland demarre. Combine a l'autologin greetd
+                // (modules/desktop.nix), c'est ce qui remplace le greeter par
+                // l'ecran de verrouillage II au boot.
+                property bool launchOnStartup: true
                 property JsonObject blur: JsonObject {
                     property bool enable: true
                     property real radius: 100

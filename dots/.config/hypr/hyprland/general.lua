@@ -3,7 +3,7 @@ hl.monitor({
     output = "",
     mode = "preferred",
     position = "auto",
-    scale = 1
+    scale = 1.6
 })
 
 hl.gesture({
@@ -51,7 +51,7 @@ hl.config({
         gaps_out = 5,
         gaps_workspaces = 50,
 
-        border_size = 1,
+        border_size = 5,
 
         col = {
             active_border = "rgba(0DB7D455)",
@@ -254,7 +254,7 @@ hl.animation({
 
 hl.config({
     input = {
-        kb_layout = "us",
+        kb_layout = "fr",
         numlock_by_default = true,
         repeat_delay = 250,
         repeat_rate = 35,

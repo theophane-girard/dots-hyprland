@@ -25,3 +25,10 @@ hl.bind("CTRL + SUPER + L", hl.dsp.exec_cmd("loginctl lock-session"),
 hl.bind("SUPER + SHIFT + E",
     hl.dsp.exec_cmd(fileManager or "xdg-open ~"),
     { description = "App: File manager" })
+
+-- Cheatsheet (liste des raccourcis) : end-4 le met sur SUPER + Slash, injouable
+-- en AZERTY. Le keysym `slash` n'existe qu'au niveau shifte de la touche `:`,
+-- or Hyprland matche le keysym NON shifte -> le bind ne peut jamais tomber.
+-- On le remet sur SUPER + Colon, c.-a-d. SUPER + la touche `:` sans Shift.
+hl.bind("SUPER + Colon", hl.dsp.global("quickshell:cheatsheetToggle"),
+    { description = "Shell: Toggle cheatsheet" })

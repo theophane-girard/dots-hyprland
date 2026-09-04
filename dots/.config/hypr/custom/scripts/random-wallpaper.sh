@@ -1,46 +1,36 @@
 #!/usr/bin/env bash
-# Tire un fond d'ecran au hasard et le passe a switchwall.sh (end-4).
+# Tire un fond d'ecran au hasard au demarrage de la session.
 #
-# Appele au demarrage de Hyprland depuis custom/execs.lua.
+# Appele depuis custom/execs.lua sur hyprland.start.
 #
-# ATTENTION : changer de fond d'ecran REGENERE toute la palette matugen. Le
-# shell, hyprlock, fuzzel, les bordures de fenetres et les apps GTK/Qt
-# changent donc de couleur a chaque boot. C'est le fonctionnement normal de
-# ces dotfiles, pas un effet de bord de ce script.
+# On delegue a QuickShell via son global "wallpaperSelectorRandom" -- le meme
+# que CTRL+SUPER+ALT+T -- au lieu d'appeler switchwall.sh directement.
 #
-# switchwall.sh n'a pas besoin de QuickShell pour travailler (il ecrit
-# .background.wallpaperPath dans config.json via jq, puis lance matugen).
-# On attend quand meme que le shell soit vivant : matugen reecrit les fichiers
-# de couleurs que QuickShell lit au demarrage, et le laisser les relire
-# reactivement evite de tomber sur une ecriture a moitie faite.
+# POURQUOI, et c'est le coeur du sujet : switchwall.sh veut un --mode explicite.
+# Sans lui, il devine avec
+#     gsettings get org.gnome.desktop.interface color-scheme
+# qui repond "No schemas installed" sur cette machine ; il retombe alors sur
+# LIGHT (switchwall.sh, "Determine mode if not set") et toute la palette passe
+# en clair. QuickShell, lui, passe toujours --mode dark|light
+# (services/Wallpapers.qml) d'apres son propre etat, lui-meme deduit de la
+# palette courante (services/MaterialThemeLoader.qml : background hslLightness
+# < 0.5). Le mode sombre se conserve donc d'un boot au suivant.
+#
+# Bonus : le tirage, le dossier courant et le mode restent geres a un seul
+# endroit, celui qu'end-4 maintient.
 
 set -euo pipefail
 
-DIR="${1:-$HOME/wallpapers}"
-SHELL_CONFIG="$HOME/.config/illogical-impulse/config.json"
-SWITCHWALL="$HOME/.config/quickshell/ii/scripts/colors/switchwall.sh"
+# "ii" = nom du dossier de config QuickShell. Cote Hyprland c'est $qsConfig,
+# mais cette variable appartient a hyprlang, elle n'existe pas dans un shell.
+QS_CONFIG="ii"
 
-[ -d "$DIR" ] || exit 0
-[ -x "$SWITCHWALL" ] || exit 0
-
-# Au plus 15 s d'attente : si QuickShell ne demarre pas, on tire quand meme.
+# Le global n'est servi que si le shell tourne : au plus 15 s d'attente.
 for _ in $(seq 30); do
-    qs -c ii ipc call TEST_ALIVE >/dev/null 2>&1 && break
+    if qs -c "$QS_CONFIG" ipc call TEST_ALIVE >/dev/null 2>&1; then
+        exec hyprctl dispatch 'hl.dsp.global("quickshell:wallpaperSelectorRandom")'
+    fi
     sleep 0.5
 done
 
-mapfile -t walls < <(find "$DIR" -maxdepth 1 -type f \
-    \( -iname '*.jpg' -o -iname '*.jpeg' -o -iname '*.png' -o -iname '*.webp' \) | sort)
-[ "${#walls[@]}" -gt 0 ] || exit 0
-
-# Ne pas retomber sur celui du boot precedent quand il y a le choix.
-current="$(jq -r '.background.wallpaperPath // ""' "$SHELL_CONFIG" 2>/dev/null || true)"
-if [ "${#walls[@]}" -gt 1 ] && [ -n "$current" ]; then
-    filtered=()
-    for w in "${walls[@]}"; do
-        [ "$w" = "$current" ] || filtered+=("$w")
-    done
-    [ "${#filtered[@]}" -gt 0 ] && walls=("${filtered[@]}")
-fi
-
-exec "$SWITCHWALL" --image "${walls[RANDOM % ${#walls[@]}]}"
+exit 0

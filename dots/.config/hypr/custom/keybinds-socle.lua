@@ -123,39 +123,39 @@ end
 -- $terminal / $terminalExec : défauts dans hyprland.conf, surchargeables
 -- par machine via le hook local.conf.
 -- yazi reste en dur : le bind dépend de son option --cwd-file, propre à yazi.
-bind("SUPER + A", hl.dsp.exec_cmd(terminal))
-bind("SUPER + E", hl.dsp.exec_cmd(terminalExec .. " " .. [[bash -c 'tmp=$(mktemp); yazi --cwd-file="$tmp"; d=$(cat "$tmp"); [ -n "$d" ] && cd "$d"; rm -f "$tmp"; exec bash']]))
+bind("SUPER + A", hl.dsp.exec_cmd(terminal), { description = "App: Terminal" })
+bind("SUPER + E", hl.dsp.exec_cmd(terminalExec .. " " .. [[bash -c 'tmp=$(mktemp); yazi --cwd-file="$tmp"; d=$(cat "$tmp"); [ -n "$d" ] && cd "$d"; rm -f "$tmp"; exec bash']]), { description = "App: File manager (yazi)" })
 
 -- === Dictée vocale (hyprwhspr) ===
 -- Toggle : une fois pour démarrer, une fois pour arrêter.
 -- NOTE: chemin FHS /usr/... : inexistant sur NixOS, ce bind ne fera rien
 bind("SUPER + twosuperior", hl.dsp.exec_cmd("/usr/lib/hyprwhspr/config/hyprland/hyprwhspr-tray.sh record"),
-    { description = "Speech-to-text" })
+    { description = "Input: Speech-to-text" })
 
 -- === Window Management ===
-bind("SUPER + C", hl.dsp.window.close())
-bind("SUPER + F", hl.dsp.window.fullscreen({ mode = "maximized", action = "toggle" }))
-bind("SUPER + SHIFT + F", hl.dsp.window.fullscreen({ mode = "fullscreen", action = "toggle" }))
-bind("SUPER + SHIFT + T", hl.dsp.window.float({ action = "toggle" }))
-bind("SUPER + W", hl.dsp.group.toggle())
+bind("SUPER + C", hl.dsp.window.close(), { description = "Window: Close" })
+bind("SUPER + F", hl.dsp.window.fullscreen({ mode = "maximized", action = "toggle" }), { description = "Window: Toggle maximize" })
+bind("SUPER + SHIFT + F", hl.dsp.window.fullscreen({ mode = "fullscreen", action = "toggle" }), { description = "Window: Toggle fullscreen" })
+bind("SUPER + SHIFT + T", hl.dsp.window.float({ action = "toggle" }), { description = "Window: Toggle floating" })
+bind("SUPER + W", hl.dsp.group.toggle(), { description = "Group: Toggle group" })
 
 -- === Focus Navigation ===
-bind("SUPER + Left", hl.dsp.focus({ direction = "l" }))
-bind("SUPER + Down", hl.dsp.focus({ direction = "d" }))
-bind("SUPER + Up", hl.dsp.focus({ direction = "u" }))
-bind("SUPER + Right", hl.dsp.focus({ direction = "r" }))
-bind("SUPER + H", hl.dsp.focus({ direction = "l" }))
+bind("SUPER + Left", hl.dsp.focus({ direction = "l" }), { description = "Focus: Focus window left" })
+bind("SUPER + Down", hl.dsp.focus({ direction = "d" }), { description = "Focus: Focus window down" })
+bind("SUPER + Up", hl.dsp.focus({ direction = "u" }), { description = "Focus: Focus window up" })
+bind("SUPER + Right", hl.dsp.focus({ direction = "r" }), { description = "Focus: Focus window right" })
+bind("SUPER + H", hl.dsp.focus({ direction = "l" }), { description = "Focus: Focus window left (vim hjkl)" })
 bind("SUPER + J", hl.dsp.focus({ direction = "d" }))
 bind("SUPER + K", hl.dsp.focus({ direction = "u" }))
 bind("SUPER + L", hl.dsp.focus({ direction = "r" }))
 
 -- === Window Movement ===
-bind("SUPER + SHIFT + Left", hl.dsp.window.move({ direction = "l" }))
-bind("SUPER + SHIFT + Down", hl.dsp.window.move({ direction = "d" }))
-bind("SUPER + SHIFT + Up", hl.dsp.window.move({ direction = "u" }))
-bind("SUPER + SHIFT + Right", hl.dsp.window.move({ direction = "r" }))
+bind("SUPER + SHIFT + Left", hl.dsp.window.move({ direction = "l" }), { description = "Window: Move window left" })
+bind("SUPER + SHIFT + Down", hl.dsp.window.move({ direction = "d" }), { description = "Window: Move window down" })
+bind("SUPER + SHIFT + Up", hl.dsp.window.move({ direction = "u" }), { description = "Window: Move window up" })
+bind("SUPER + SHIFT + Right", hl.dsp.window.move({ direction = "r" }), { description = "Window: Move window right" })
 -- NOTE: movewindoworgroup: pas d'equivalent typé en 0.55.4 -> movewindow (la fusion dans un groupe adjacent est perdue)
-bind("SUPER + SHIFT + H", hl.dsp.window.move({ direction = "l" }))
+bind("SUPER + SHIFT + H", hl.dsp.window.move({ direction = "l" }), { description = "Window: Move window left (vim hjkl)" })
 -- NOTE: movewindoworgroup: pas d'equivalent typé en 0.55.4 -> movewindow (la fusion dans un groupe adjacent est perdue)
 bind("SUPER + SHIFT + J", hl.dsp.window.move({ direction = "d" }))
 -- NOTE: movewindoworgroup: pas d'equivalent typé en 0.55.4 -> movewindow (la fusion dans un groupe adjacent est perdue)
@@ -163,21 +163,21 @@ bind("SUPER + SHIFT + K", hl.dsp.window.move({ direction = "u" }))
 -- NOTE: movewindoworgroup: pas d'equivalent typé en 0.55.4 -> movewindow (la fusion dans un groupe adjacent est perdue)
 bind("SUPER + SHIFT + L", hl.dsp.window.move({ direction = "r" }))
 
-bind("SUPER + CTRL + H", hl.dsp.group.prev(), { repeating = true })
-bind("SUPER + CTRL + L", hl.dsp.group.next(), { repeating = true })
+bind("SUPER + CTRL + H", hl.dsp.group.prev(), { repeating = true, description = "Group: Previous window in group" })
+bind("SUPER + CTRL + L", hl.dsp.group.next(), { repeating = true, description = "Group: Next window in group" })
 
-bind("SUPER + code:35", hl.dsp.group.move_window({ direction = "f" }))  -- forward  (touche ] physique)
-bind("SUPER + code:34", hl.dsp.group.move_window({ direction = "b" }))  -- backward (touche [ physique)
+bind("SUPER + code:35", hl.dsp.group.move_window({ direction = "f" }), { description = "Group: Move window forward in group" })  -- forward  (touche ] physique)
+bind("SUPER + code:34", hl.dsp.group.move_window({ direction = "b" }), { description = "Group: Move window backward in group" })  -- backward (touche [ physique)
 
 -- === Column Navigation ===
 bind("SUPER + Home", function()
         local wins = hl.get_workspace_windows(hl.get_active_workspace().id)
         if wins[1] then hl.dispatch(hl.dsp.focus({ window = wins[1] })) end
-    end)
+    end, { description = "Focus: First window on workspace" })
 bind("SUPER + End", function()
         local wins = hl.get_workspace_windows(hl.get_active_workspace().id)
         if wins[1] then hl.dispatch(hl.dsp.focus({ window = wins[#wins] })) end
-    end)
+    end, { description = "Focus: Last window on workspace" })
 
 -- === Monitor Navigation ===
 -- (desactive dans la source) bind = SUPER CTRL, left, focusmonitor, l
@@ -188,49 +188,49 @@ bind("SUPER + End", function()
 -- (desactive dans la source) bind = SUPER CTRL, L, focusmonitor, r
 
 -- === Move to Monitor ===
-bind("SUPER + SHIFT + CTRL + Left", hl.dsp.window.move({ monitor = "l" }))
-bind("SUPER + SHIFT + CTRL + Down", hl.dsp.window.move({ monitor = "d" }))
-bind("SUPER + SHIFT + CTRL + Up", hl.dsp.window.move({ monitor = "u" }))
-bind("SUPER + SHIFT + CTRL + Right", hl.dsp.window.move({ monitor = "r" }))
+bind("SUPER + SHIFT + CTRL + Left", hl.dsp.window.move({ monitor = "l" }), { description = "Monitor: Move window to monitor left" })
+bind("SUPER + SHIFT + CTRL + Down", hl.dsp.window.move({ monitor = "d" }), { description = "Monitor: Move window to monitor down" })
+bind("SUPER + SHIFT + CTRL + Up", hl.dsp.window.move({ monitor = "u" }), { description = "Monitor: Move window to monitor up" })
+bind("SUPER + SHIFT + CTRL + Right", hl.dsp.window.move({ monitor = "r" }), { description = "Monitor: Move window to monitor right" })
 bind("SUPER + SHIFT + CTRL + H", hl.dsp.window.move({ monitor = "l" }))
-bind("SUPER + SHIFT + CTRL + J", hl.dsp.window.move({ monitor = "d" }))
-bind("SUPER + SHIFT + CTRL + K", hl.dsp.window.move({ monitor = "u" }))
+bind("SUPER + SHIFT + CTRL + J", hl.dsp.window.move({ monitor = "d" }), { description = "Monitor: Move window to monitor down (vim hjkl)" })
+bind("SUPER + SHIFT + CTRL + K", hl.dsp.window.move({ monitor = "u" }), { description = "Monitor: Move window to monitor up (vim hjkl)" })
 bind("SUPER + SHIFT + CTRL + L", hl.dsp.window.move({ monitor = "r" }))
 
 -- === Workspace Navigation ===
-bind("SUPER + Page_Down", hl.dsp.focus({ workspace = "e+1" }))
-bind("SUPER + Page_Up", hl.dsp.focus({ workspace = "e-1" }))
-bind("SUPER + U", hl.dsp.focus({ workspace = "e+1" }))
-bind("SUPER + I", hl.dsp.focus({ workspace = "e-1" }))
-bind("SUPER + CTRL + Down", hl.dsp.window.move({ workspace = "e+1" }))
-bind("SUPER + CTRL + Up", hl.dsp.window.move({ workspace = "e-1" }))
-bind("SUPER + CTRL + U", hl.dsp.window.move({ workspace = "e+1" }))
-bind("SUPER + CTRL + I", hl.dsp.window.move({ workspace = "e-1" }))
-bind("SUPER + CTRL + Right", hl.dsp.focus({ workspace = "r+1" }))
-bind("SUPER + CTRL + Left", hl.dsp.focus({ workspace = "r-1" }))
+bind("SUPER + Page_Down", hl.dsp.focus({ workspace = "e+1" }), { description = "Workspace: Next workspace" })
+bind("SUPER + Page_Up", hl.dsp.focus({ workspace = "e-1" }), { description = "Workspace: Previous workspace" })
+bind("SUPER + U", hl.dsp.focus({ workspace = "e+1" }), { description = "Workspace: Next workspace" })
+bind("SUPER + I", hl.dsp.focus({ workspace = "e-1" }), { description = "Workspace: Previous workspace" })
+bind("SUPER + CTRL + Down", hl.dsp.window.move({ workspace = "e+1" }), { description = "Workspace: Move window to next workspace" })
+bind("SUPER + CTRL + Up", hl.dsp.window.move({ workspace = "e-1" }), { description = "Workspace: Move window to previous workspace" })
+bind("SUPER + CTRL + U", hl.dsp.window.move({ workspace = "e+1" }), { description = "Workspace: Move window to next workspace" })
+bind("SUPER + CTRL + I", hl.dsp.window.move({ workspace = "e-1" }), { description = "Workspace: Move window to previous workspace" })
+bind("SUPER + CTRL + Right", hl.dsp.focus({ workspace = "r+1" }), { description = "Workspace: Next workspace on monitor" })
+bind("SUPER + CTRL + Left", hl.dsp.focus({ workspace = "r-1" }), { description = "Workspace: Previous workspace on monitor" })
 -- NOTE: doublon dans la source ; ici c'est le DERNIER qui gagne (le helper
 --       bind() libere le precedent), alors que la source declenchait les
 --       deux. Deja bindee plus haut sur 'movewindow mon:r') : en Lua les deux se declenchent.
-bind("SUPER + SHIFT + CTRL + L", hl.dsp.focus({ workspace = "r+1" }))
+bind("SUPER + SHIFT + CTRL + L", hl.dsp.focus({ workspace = "r+1" }), { description = "Workspace: Next workspace on monitor (vim hjkl)" })
 -- NOTE: doublon dans la source ; ici c'est le DERNIER qui gagne (le helper
 --       bind() libere le precedent), alors que la source declenchait les
 --       deux. Deja bindee plus haut sur 'movewindow mon:l') : en Lua les deux se declenchent.
-bind("SUPER + SHIFT + CTRL + H", hl.dsp.focus({ workspace = "r-1" }))
+bind("SUPER + SHIFT + CTRL + H", hl.dsp.focus({ workspace = "r-1" }), { description = "Workspace: Previous workspace on monitor (vim hjkl)" })
 
 -- === Move Workspaces ===
-bind("SUPER + SHIFT + Page_Down", hl.dsp.window.move({ workspace = "e+1" }))
-bind("SUPER + SHIFT + Page_Up", hl.dsp.window.move({ workspace = "e-1" }))
-bind("SUPER + SHIFT + U", hl.dsp.window.move({ workspace = "e+1" }))
-bind("SUPER + SHIFT + I", hl.dsp.window.move({ workspace = "e-1" }))
+bind("SUPER + SHIFT + Page_Down", hl.dsp.window.move({ workspace = "e+1" }), { description = "Workspace: Move window to next workspace" })
+bind("SUPER + SHIFT + Page_Up", hl.dsp.window.move({ workspace = "e-1" }), { description = "Workspace: Move window to previous workspace" })
+bind("SUPER + SHIFT + U", hl.dsp.window.move({ workspace = "e+1" }), { description = "Workspace: Move window to next workspace" })
+bind("SUPER + SHIFT + I", hl.dsp.window.move({ workspace = "e-1" }), { description = "Workspace: Move window to previous workspace" })
 
 -- === Mouse Wheel Navigation ===
-bind("SUPER + mouse_down", hl.dsp.focus({ workspace = "e+1" }))
-bind("SUPER + mouse_up", hl.dsp.focus({ workspace = "e-1" }))
-bind("SUPER + CTRL + mouse_down", hl.dsp.window.move({ workspace = "e+1" }))
-bind("SUPER + CTRL + mouse_up", hl.dsp.window.move({ workspace = "e-1" }))
+bind("SUPER + mouse_down", hl.dsp.focus({ workspace = "e+1" }), { description = "Workspace: Next workspace (scroll)" })
+bind("SUPER + mouse_up", hl.dsp.focus({ workspace = "e-1" }), { description = "Workspace: Previous workspace (scroll)" })
+bind("SUPER + CTRL + mouse_down", hl.dsp.window.move({ workspace = "e+1" }), { description = "Workspace: Move window to next workspace (scroll)" })
+bind("SUPER + CTRL + mouse_up", hl.dsp.window.move({ workspace = "e-1" }), { description = "Workspace: Move window to previous workspace (scroll)" })
 
 -- === Numbered Workspaces ===
-bind("SUPER + code:10", hl.dsp.focus({ workspace = 1 }))
+bind("SUPER + code:10", hl.dsp.focus({ workspace = 1 }), { description = "Workspace: Focus workspace 1-9 (number row)" })
 bind("SUPER + code:11", hl.dsp.focus({ workspace = 2 }))
 bind("SUPER + code:12", hl.dsp.focus({ workspace = 3 }))
 bind("SUPER + code:13", hl.dsp.focus({ workspace = 4 }))
@@ -241,7 +241,7 @@ bind("SUPER + code:17", hl.dsp.focus({ workspace = 8 }))
 bind("SUPER + code:18", hl.dsp.focus({ workspace = 9 }))
 
 -- === Move to Numbered Workspaces ===
-bind("SUPER + SHIFT + code:10", hl.dsp.window.move({ workspace = 1 }))
+bind("SUPER + SHIFT + code:10", hl.dsp.window.move({ workspace = 1 }), { description = "Workspace: Move window to workspace 1-9 (number row)" })
 bind("SUPER + SHIFT + code:11", hl.dsp.window.move({ workspace = 2 }))
 bind("SUPER + SHIFT + code:12", hl.dsp.window.move({ workspace = 3 }))
 bind("SUPER + SHIFT + code:13", hl.dsp.window.move({ workspace = 4 }))
@@ -252,11 +252,11 @@ bind("SUPER + SHIFT + code:17", hl.dsp.window.move({ workspace = 8 }))
 bind("SUPER + SHIFT + code:18", hl.dsp.window.move({ workspace = 9 }))
 
 -- === Column Management ===
-bind("SUPER + BracketLeft", hl.dsp.layout("preselect l"))
-bind("SUPER + BracketRight", hl.dsp.layout("preselect r"))
+bind("SUPER + BracketLeft", hl.dsp.layout("preselect l"), { description = "Layout: Preselect split left" })
+bind("SUPER + BracketRight", hl.dsp.layout("preselect r"), { description = "Layout: Preselect split right" })
 
 -- === Sizing & Layout ===
-bind("SUPER + R", hl.dsp.layout("togglesplit"))
+bind("SUPER + R", hl.dsp.layout("togglesplit"), { description = "Layout: Toggle split direction" })
 -- NOTE: resizeactive exact 100% 100% : hl.window.resize n'accepte que des nombres -> taille calculee depuis le moniteur actif
 bind("SUPER + CTRL + F", function()
         local m = hl.get_active_monitor()
@@ -265,26 +265,26 @@ bind("SUPER + CTRL + F", function()
             y = math.floor(m.height / m.scale),
             exact = true,
         }))
-    end)
+    end, { description = "Window: Resize to full monitor" })
 
 -- === Move/resize windows with mainMod + LMB/RMB and dragging ===
-bind("SUPER + mouse:272", hl.dsp.window.drag(), { mouse = true, description = "Move window" })
-bind("SUPER + mouse:273", hl.dsp.window.resize(), { mouse = true, description = "Resize window" })
+bind("SUPER + mouse:272", hl.dsp.window.drag(), { mouse = true, description = "Window: Move (drag)" })
+bind("SUPER + mouse:273", hl.dsp.window.resize(), { mouse = true, description = "Window: Resize (drag)" })
 
 -- === Resize au clavier (scrolling layout) ===
 -- scripts/hresize.sh : hyprctl + jq uniquement.
 -- NOTE: chemin du script reecrit vers custom/scripts/ (emplacement end-4)
 bind("SUPER + code:20", hl.dsp.exec_cmd("~/.config/hypr/custom/scripts/hresize.sh shrink h"),
-    { repeating = true, description = "Shrink active" })
+    { repeating = true, description = "Window: Shrink width" })
 -- NOTE: chemin du script reecrit vers custom/scripts/ (emplacement end-4)
 bind("SUPER + code:21", hl.dsp.exec_cmd("~/.config/hypr/custom/scripts/hresize.sh grow h"),
-    { repeating = true, description = "Grow active" })
+    { repeating = true, description = "Window: Grow width" })
 -- NOTE: chemin du script reecrit vers custom/scripts/ (emplacement end-4)
 bind("SUPER + SHIFT + code:20", hl.dsp.exec_cmd("~/.config/hypr/custom/scripts/hresize.sh shrink v"),
-    { repeating = true, description = "Shrink active vertically" })
+    { repeating = true, description = "Window: Shrink height" })
 -- NOTE: chemin du script reecrit vers custom/scripts/ (emplacement end-4)
 bind("SUPER + SHIFT + code:21", hl.dsp.exec_cmd("~/.config/hypr/custom/scripts/hresize.sh grow v"),
-    { repeating = true, description = "Grow active vertically" })
+    { repeating = true, description = "Window: Grow height" })
 
 -- === System Controls ===
 -- (desactive dans la source) bind = SUPER SHIFT, P, dpms, toggle

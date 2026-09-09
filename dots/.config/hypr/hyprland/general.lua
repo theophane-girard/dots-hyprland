@@ -306,6 +306,19 @@ hl.config({
         follow_mouse = 1,
         off_window_axis_events = 2,
 
+        -- 0 = ne pas fabriquer de crans de scroll a partir des evenements
+        -- haute resolution. Le defaut (1, "non_standard") en fabrique pour les
+        -- peripheriques qui n'en emettent pas -- donc pour un touchpad. Cette
+        -- emulation se combine tres mal avec un `scroll_factor` bas : le delta
+        -- etant divise par 10, le seuil d'un cran est franchi 10 fois moins
+        -- souvent, et les applis qui lisent les crans (un terminal) deviennent
+        -- inutilisables alors que celles qui lisent les pixels (un navigateur)
+        -- vont bien. A 0, foot recoit les evenements lisses (il gere
+        -- wl_pointer.axis_value120) et defile par fractions de ligne.
+        -- CONTREPARTIE : une appli qui ne gere QUE les crans perd le scroll au
+        -- pad. Verifie ok sur foot et Chrome.
+        emulate_discrete_scroll = 0,
+
         touchpad = {
             natural_scroll = true,
             disable_while_typing = true,

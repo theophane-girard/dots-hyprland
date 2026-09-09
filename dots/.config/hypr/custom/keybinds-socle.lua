@@ -126,6 +126,17 @@ end
 bind("SUPER + A", hl.dsp.exec_cmd(terminal), { description = "App: Terminal" })
 bind("SUPER + E", hl.dsp.exec_cmd(terminalExec .. " " .. [[bash -c 'tmp=$(mktemp); yazi --cwd-file="$tmp"; d=$(cat "$tmp"); [ -n "$d" ] && cd "$d"; rm -f "$tmp"; exec bash']]), { description = "App: File manager (yazi)" })
 
+-- Terminal dans le dossier de la fenetre active. scripts/term-here.sh lit le
+-- cwd sur le process en avant-plan de la fenetre focus : pas besoin d'OSC 7,
+-- et ca marche par-dessus un programme deja lance (il suit meme les `:cd` de
+-- nvim).
+-- NOTE: chemin du script reecrit vers custom/scripts/ (emplacement end-4)
+-- ATTENTION : cette combo n'etait pas libre. end-4 y met DEUX binds
+-- (quickshell:regionSearch + snip_to_search.sh, "Google Lens"). Le helper
+-- bind() les libere tous les deux : le recherche-par-region disparait.
+bind("SUPER + SHIFT + A", hl.dsp.exec_cmd("~/.config/hypr/custom/scripts/term-here.sh " .. terminal),
+    { description = "App: Terminal (dossier fenetre active)" })
+
 -- === Dictée vocale (hyprwhspr) ===
 -- Toggle : une fois pour démarrer, une fois pour arrêter.
 -- NOTE: chemin FHS /usr/... : inexistant sur NixOS, ce bind ne fera rien

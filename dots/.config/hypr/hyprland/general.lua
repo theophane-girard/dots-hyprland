@@ -6,10 +6,29 @@ hl.monitor({
     scale = 1.6
 })
 
+-- 3 doigts a l'horizontale = workspace precedent / suivant.
+-- Remplace le `direction = "swipe"` + `action = "move"` d'end-4 (deplacer la
+-- fenetre) : l'API Lua 0.55 n'expose pas d'`ungesture`, donc un geste ne peut
+-- pas etre neutralise depuis custom/general.lua -- il faut editer celui-ci.
+-- "horizontal" couvre les deux sens ; "swipe" aurait aussi capte le vertical.
 hl.gesture({
     fingers = 3,
-    direction = "swipe",
-    action = "move"
+    direction = "horizontal",
+    action = "workspace"
+})
+-- 3 doigts a la verticale = defiler les fenetres du workspace courant.
+-- `scroll_move` est le geste du layout scrolling (CScrollMoveTrackpadGesture) :
+-- il fait glisser la pile de colonnes, donc avec direction = "down" il defile
+-- les fenetres du workspace, sans en changer. Reglages associes deja par
+-- defaut a true : gestures:scrolling:move_snap_to_grid / move_snap_cursor.
+-- ATTENTION : ce geste ne peut coexister avec un 3 doigts `direction =
+-- "swipe"`. Hyprland refuse la declaration -- "Previous SWIPE shadows new
+-- VERTICAL" -- car swipe capte deja toutes les directions. C'est pourquoi le
+-- geste ci-dessus est passe de "swipe" a "horizontal".
+hl.gesture({
+    fingers = 3,
+    direction = "vertical",
+    action = "scroll_move"
 })
 hl.gesture({
     fingers = 3,
@@ -46,6 +65,11 @@ hl.config({
         workspace_swipe_create_new = true
     },
     general = {
+        -- Layout scrolling au lieu du dwindle d'end-4 : machine a un seul
+        -- ecran, les fenetres s'empilent donc dans une colonne qu'on fait
+        -- defiler (voir la section `scrolling` plus bas).
+        layout = "scrolling",
+
         -- Gaps and border
         gaps_in = 4,
         gaps_out = 5,
@@ -112,6 +136,26 @@ hl.config({
         smart_split = false,
         smart_resizing = false
         -- precise_mouse_move = true,
+    },
+    -- direction = "down" : les nouvelles fenetres apparaissent en dessous et
+    -- le layout defile verticalement (defaut "right"). A noter : cette option
+    -- n'est pas validee a l'ecriture -- une valeur inconnue est acceptee sans
+    -- erreur puis ignoree. C'est ce qui rend le layout "scrolling vertical" et ce
+    -- sur quoi s'appuie le geste 3 doigts vertical ci-dessus.
+    -- Le bloc dwindle au-dessus est conserve : sans effet tant que
+    -- general.layout vaut "scrolling", il redevient utile si on y revient.
+    scrolling = {
+        direction = "down",
+        -- Une fenetre = 100 % de la hauteur de l'ecran. Avec direction =
+        -- "down", `column_width` (defaut 0.5) est l'extension de la colonne le
+        -- long de l'axe de defilement, donc sa HAUTEUR : il n'existe pas de
+        -- `column_height`. Verifie a chaud : 0.5 -> colonnes de 581 px,
+        -- 1.0 -> 1176 px, soit la hauteur logique (1200) moins les gaps.
+        -- ATTENTION : l'option ne vaut que pour les colonnes CREEES ensuite.
+        -- Une colonne existante garde sa taille a travers un reload ; il faut
+        -- `layoutmsg colresize 1.0` (colonne focus uniquement) pour la
+        -- recadrer.
+        column_width = 1.0
     },
 })
 -- Curves
@@ -266,7 +310,21 @@ hl.config({
             natural_scroll = true,
             disable_while_typing = true,
             clickfinger_behavior = true,
-            scroll_factor = 0.7
+            -- Vitesse de defilement au pad, abaissee de 0.7 a 0.1. C'est un
+            -- multiplicateur applique au mouvement de scroll : plus bas =
+            -- plus lent. Sans effet sur une souris externe, qui a son propre
+            -- `input:scroll_factor` (laisse a 1.0), ni sur les gestes a
+            -- plusieurs doigts, regles par les `gestures:*` plus haut.
+            --
+            -- La valeur parait absurdement basse et ne l'est pas : la plage
+            -- utile est comprimee tout en bas. Teste a chaud sur ce pad, la
+            -- difference entre 0.7 et 0.4 est imperceptible ; elle ne se sent
+            -- qu'en dessous de ~0.2, et 0.05 est deja trop lent. Inutile donc
+            -- de reajuster par petits pas depuis 1.0 : ca ne bougera pas.
+            --
+            -- Reglable a chaud, sans rebuild, pour retrouver le bon cran :
+            --   hyprctl eval 'hl.config({ ["input.touchpad.scroll_factor"] = 0.1 })'
+            scroll_factor = 0.1
         }
     },
 
